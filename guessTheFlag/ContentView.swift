@@ -15,6 +15,9 @@ struct ContentView: View {
     @State private var scoreTitle = ""
     @State private var userScore = 0
     
+    @State private var animationAmount = 0.0
+    @State private var isClickedFlagCorrect = false
+    
     var body: some View {
         ZStack() {
             LinearGradient(gradient: Gradient(colors: [.blue, .black]), startPoint: .top, endPoint: .bottom).edgesIgnoringSafeArea(.all)
@@ -29,16 +32,25 @@ struct ContentView: View {
                         .font(.largeTitle)
                         .fontWeight(.black)
                 }
+                
                 ForEach(0 ..< 3) { number in
                     Button(action:{
-                        self.flagTapped(number)
+                        withAnimation(.default) {
+                            self.flagTapped(number)
+                            self.animationAmount += 360
+                            if (scoreTitle == "Correct") {
+                                 isClickedFlagCorrect = true
+                            }
+                        }
                     }) {
                         Image(self.countries[number])
                             .renderingMode(.original)
                             .clipShape(Capsule())
                             .overlay(Capsule().stroke(Color.black, lineWidth: 1))
                             .shadow(color: .black, radius: 2)
-                    }
+                    }.rotation3DEffect(.degrees(animationAmount), axis:(x: 0, y: self.isClickedFlagCorrect ? ((number == self.correctAnswer) ? 1 : 0) : 0 , z: 0))
+                        .opacity(!(number == self.correctAnswer) && self.showingScore ? 0.25 : 1)
+                    
                 }
                 Text("Score: \(userScore)")
                     .foregroundColor(.white)
@@ -72,6 +84,7 @@ struct ContentView: View {
     
     func askQuestion() {
         countries.shuffle()
+        isClickedFlagCorrect = false
         correctAnswer = Int.random(in: 0...2)
     }
 }
